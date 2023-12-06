@@ -1,0 +1,10 @@
+.DS_Store
+
+HELP.md
+target/
+venv/
+
+### VS Code ###
+.vscode/
+__pycache__
+*.pyc

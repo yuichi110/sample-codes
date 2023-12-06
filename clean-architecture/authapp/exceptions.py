@@ -1,0 +1,6 @@
+class ClientException(Exception):
+    ...
+
+
+class ServerException(Exception):
+    ...
