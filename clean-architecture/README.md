@@ -1,11 +1,13 @@
 # python-web-app
-## Python Flask Web App 
+## Python FastAPI Web App 
 ### How to run locally
 
 0. install poetry, python project management tool
 1. cd to project root
 2. issue `poetry install` for setup
-3. `poetry run uvicorn --host 0.0.0.0 --port 8000 userapp.__main__:app --reload`
+3. `poetry run uvicorn --host 0.0.0.0 --port 8000 authapp.__main__:app --reload`
+
+Able to provide app parameter via CLI args or environment variable.
 
 ### How to test
 #### unit test
