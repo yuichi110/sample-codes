@@ -1,5 +1,7 @@
 import psycopg2
 import pytest
+import threading
+import time
 
 import const
 
@@ -126,59 +128,16 @@ def test_create_fresh_table():
 
 
 @pytest.mark.run(order=1)
-def test_success_transaction():
-    order_insert_query = table_orders["insert_query"]
-    order_detail_insert_query = table_order_details["insert_query"]
+def test_select_for_update():
+    def work1():
+        ...
 
-    with psycopg2.connect(**const.PG_PARAMS) as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("BEGIN;")
-            cursor.execute(order_insert_query, (1, "2023-12-31 15:30:00"))
-            order_id = cursor.fetchone()
-            cursor.execute(order_detail_insert_query, (order_id, 1, 5))
-            cursor.execute(order_detail_insert_query, (order_id, 2, 3))
-            cursor.execute("COMMIT;")
+    def work2():
+        ...
 
-        with conn.cursor() as cursor:
-            cursor.execute(select_query)
-            results = cursor.fetchall()
-
-    print(results)
-    assert set(results) == set(
-        [
-            (1, "ichiro", "apple", 5),
-            (1, "ichiro", "banama", 3),
-        ]
-    )
-
-
-@pytest.mark.run(order=1)
-def test_fail_transaction():
-    order_insert_query = table_orders["insert_query"]
-    order_detail_insert_query = table_order_details["insert_query"]
-
-    with psycopg2.connect(**const.PG_PARAMS) as conn:
-        with conn.cursor() as cursor:
-            try:
-                cursor.execute("BEGIN;")
-                cursor.execute(order_insert_query, (2, "2023-12-31 18:00:00"))
-                order_id = cursor.fetchone()
-                cursor.execute(order_detail_insert_query, (order_id, 4, 1))
-                cursor.execute(order_detail_insert_query, (order_id, 999, 1))
-                cursor.execute("COMMIT;")
-            except Exception as e:
-                print(f"Error: {e}".rstrip())
-                print("!! ROLLBACK !!")
-                cursor.execute("ROLLBACK;")
-
-        with conn.cursor() as cursor:
-            cursor.execute(select_query)
-            results = cursor.fetchall()
-
-    print(results)
-    assert set(results) == set(
-        [
-            (1, "ichiro", "apple", 5),
-            (1, "ichiro", "banama", 3),
-        ]
-    )
+    t1 = threading.Thread(target=work1)
+    t2 = threading.Thread(target=work2)
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
